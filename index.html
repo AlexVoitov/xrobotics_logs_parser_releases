@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1324">
+  <title>XRobotics Logs Parser</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #f5f7fb;
+      background: #0b1324;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: #0b1324;
+    }
+
+    main {
+      width: min(760px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: max(56px, 10vh) 0 48px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 54px;
+      color: #9fb2d3;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border: 2px solid #58a6ff;
+      border-left-color: #49d17d;
+      border-radius: 6px;
+      transform: rotate(45deg);
+    }
+
+    h1 {
+      max-width: 680px;
+      margin: 0;
+      font-size: 72px;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 620px;
+      margin: 26px 0 0;
+      color: #bac7dd;
+      font-size: 19px;
+      line-height: 1.55;
+    }
+
+    .status {
+      min-height: 28px;
+      margin: 34px 0 18px;
+      color: #70e19b;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .downloads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .download-link {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      border: 1px solid #365172;
+      border-radius: 6px;
+      color: #f5f7fb;
+      background: #14233b;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .download-link:hover,
+    .download-link:focus-visible {
+      border-color: #72b7ff;
+      background: #1b3151;
+      outline: none;
+    }
+
+    .download-link.recommended {
+      border-color: #2d7fe8;
+      background: #1766cc;
+    }
+
+    .download-link.recommended:hover,
+    .download-link.recommended:focus-visible {
+      background: #2378df;
+    }
+
+    footer {
+      margin-top: 70px;
+      padding-top: 20px;
+      border-top: 1px solid #24344f;
+      color: #8191ad;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    footer a {
+      color: #9bcaff;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: min(100% - 28px, 760px);
+        padding-top: 44px;
+      }
+
+      .brand {
+        margin-bottom: 42px;
+      }
+
+      h1 {
+        font-size: 44px;
+      }
+
+      .lead {
+        font-size: 17px;
+      }
+
+      .downloads,
+      .download-link {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand" aria-label="XRobotics">
+      <span class="brand-mark" aria-hidden="true"></span>
+      XRobotics
+    </div>
+
+    <h1>Logs Parser</h1>
+    <p class="lead">
+      Автономное приложение для анализа логов. Python и установка зависимостей
+      не требуются.
+    </p>
+
+    <p class="status" id="status" aria-live="polite">Определяем операционную систему...</p>
+
+    <div class="downloads">
+      <a class="download-link" id="windows-download" href="https://github.com/AlexVoitov/xrobotics_logs_parser_releases/releases/latest/download/XRoboticsLogsParser-windows-x64.zip">
+        Скачать для Windows x64
+      </a>
+      <a class="download-link" id="linux-download" href="https://github.com/AlexVoitov/xrobotics_logs_parser_releases/releases/latest/download/XRoboticsLogsParser-linux-x64.tar.gz">
+        Скачать для Linux x64
+      </a>
+    </div>
+
+    <footer>
+      <span id="version">Последняя стабильная версия</span>.
+      Архив необходимо полностью распаковать перед запуском.
+      <a href="https://github.com/AlexVoitov/xrobotics_logs_parser_releases/releases/latest">Все файлы релиза</a>.
+    </footer>
+  </main>
+
+  <script>
+    const downloads = {
+      windows: {
+        label: "Windows x64",
+        element: document.getElementById("windows-download")
+      },
+      linux: {
+        label: "Linux x64",
+        element: document.getElementById("linux-download")
+      }
+    };
+
+    function detectPlatform() {
+      const platform = navigator.userAgentData?.platform || navigator.platform || "";
+      const signature = `${platform} ${navigator.userAgent || ""}`;
+      if (/windows|win32|win64/i.test(signature)) return "windows";
+      if (/linux|x11/i.test(signature) && !/android/i.test(signature)) return "linux";
+      return null;
+    }
+
+    const detectedPlatform = detectPlatform();
+    const automaticDownload = new URLSearchParams(window.location.search).get("manual") !== "1";
+    const status = document.getElementById("status");
+    if (detectedPlatform) {
+      const download = downloads[detectedPlatform];
+      download.element.classList.add("recommended");
+      status.textContent = automaticDownload
+        ? `${download.label}: загрузка начнётся автоматически.`
+        : `${download.label}: система определена.`;
+      if (automaticDownload) {
+        window.setTimeout(() => window.location.assign(download.element.href), 900);
+      }
+    } else {
+      status.textContent = "Выберите операционную систему.";
+    }
+
+    fetch("https://api.github.com/repos/AlexVoitov/xrobotics_logs_parser_releases/releases/latest")
+      .then((response) => response.ok ? response.json() : null)
+      .then((release) => {
+        if (release?.tag_name) {
+          document.getElementById("version").textContent = `Версия ${release.tag_name}`;
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
